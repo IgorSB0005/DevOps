@@ -1,6 +1,6 @@
 name: git_action_test
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   test-api:
@@ -22,3 +22,11 @@ jobs:
       - name: Run Pytest
         run: |
           pytest
+
+  build:
+    needs: test-api
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: docker build -t my_test_project .

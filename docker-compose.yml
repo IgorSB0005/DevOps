@@ -5,11 +5,17 @@ services:
     build: .
     ports:
       - "8000:8000"
-    volumes:
-      - ./data:/app/data
-
-  health-checker:
-    image: alpine
+    environment:
+      - REDIS_HOST=redis
     depends_on:
-      - api
-    command: /bin/sh -c "while true; do sleep 60; done"
+      - redis
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

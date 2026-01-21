@@ -1,26 +1,17 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import sqlite3
+import redis
 import os
+import json
 
 app = FastAPI()
 
-BASE_DIR = os.path.dirname(__file__)
-DB_PATH = os.path.join(BASE_DIR, "data", "database.db")
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+cache = redis.Redis(host=REDIS_HOST, port=6379, decode_responses=True)
 
 class Car(BaseModel):
     brand: str
     model: str
-
-def init_db():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('CREATE TABLE IF NOT EXISTS cars (id INTEGER PRIMARY KEY AUTOINCREMENT, brand TEXT, model TEXT)')
-    conn.commit()
-    conn.close()
-
-init_db()
 
 @app.get("/")
 def read_root():
@@ -28,22 +19,18 @@ def read_root():
 
 @app.get("/status")
 def get_status():
-    return {"status": "ok", "version": "1.0.0"}
+    try:
+        cache.ping()
+        return {"status": "ok", "database": "Redis connected"}
+    except:
+        return {"status": "error", "database": "Redis disconnected"}
 
 @app.get("/cars")
 def get_cars():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('SELECT brand, model FROM cars')
-    cars = [{"brand": row[0], "model": row[1]} for row in cursor.fetchall()]
-    conn.close()
-    return {"cars": cars}
+    cars = cache.lrange("cars_list", 0, -1)
+    return {"cars": [json.loads(car) for car in cars]}
 
 @app.post("/cars")
 def add_car(car: Car):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('INSERT INTO cars (brand, model) VALUES (?, ?)', (car.brand, car.model))
-    conn.commit()
-    conn.close()
-    return {"message": "Car added successfully!"}
+    cache.rpush("cars_list", json.dumps(car.dict()))
+    return {"message": "Car added to Redis!"}
