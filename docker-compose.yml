@@ -1,0 +1,15 @@
+version: '3.12'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+
+  health-checker:
+    image: alpine
+    depends_on:
+      - api
+    command: /bin/sh -c "while true; do sleep 60; done"
