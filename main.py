@@ -5,7 +5,8 @@ import os
 
 app = FastAPI()
 
-DB_PATH = "/app/data/database.db"
+BASE_DIR = os.path.dirname(__file__)
+DB_PATH = os.path.join(BASE_DIR, "data", "database.db")
 
 class Car(BaseModel):
     brand: str
