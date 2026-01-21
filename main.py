@@ -19,11 +19,7 @@ def read_root():
 
 @app.get("/status")
 def get_status():
-    try:
-        cache.ping()
-        return {"status": "ok", "database": "Redis connected"}
-    except:
-        return {"status": "error", "database": "Redis disconnected"}
+    return {"status": "ok", "version": "1.0.0"}
 
 @app.get("/cars")
 def get_cars():
