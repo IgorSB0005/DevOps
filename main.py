@@ -30,3 +30,7 @@ def get_cars():
 def add_car(car: Car):
     cache.rpush("cars_list", json.dumps(car.dict()))
     return {"message": "Car added to Redis!"}
+
+@app.get("/new")
+def get_cars():
+    return {"status": "GOOD TEST"}
