@@ -23,6 +23,11 @@ jobs:
         run: |
           pytest
 
+      - name: Run my action
+        uses: ./.github/actions/hello-action
+        with:
+          who-to-greet: 'Ihar'
+
   build:
     needs: test-api
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
